@@ -1,6 +1,6 @@
 # ml_25-26_audience_decode
 
-# 🧩 **Audience Decode Project Breakdown**
+**Audience Decode Project Breakdown**
 
 ---
 
@@ -21,7 +21,7 @@
 * Merge or identify the **main table** (`interactions`, `ratings`, etc.) for analysis.
 * Save a summary table and small CSV sample for quick previews.
 
-📦 **Output:**
+**Output:**
 `data_dictionary.md`, `table_summary.csv`, small data sample for EDA.
 
 ---
@@ -42,7 +42,7 @@
   * Train / validation used for model tuning.
   * Test only used at the end (final evaluation).
 
-📦 **Output:**
+**Output:**
 `X_train`, `X_val`, `X_test`, `y_train`, `y_val`, `y_test` (if supervised)
 or clean feature matrix (if clustering).
 `preprocess_pipeline.py` or equivalent.
@@ -73,7 +73,7 @@ or clean feature matrix (if clustering).
   * How does engagement change over time?
   * Are certain genres more popular for specific user types?
 
-📦 **Output:**
+**Output:**
 EDA notebook (`01_EDA.ipynb`)
 EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizations.
 
@@ -106,7 +106,7 @@ EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizatio
   * For regression/classification (optional): **RMSE**, **MAE**, **AUC**, **Accuracy**.
 * Select the **best model** and justify your choice.
 
-📦 **Output:**
+**Output:**
 `model_comparison.csv` with metrics and parameters
 `03_Modeling.ipynb` notebook with plots (elbow, silhouette, etc.)
 
@@ -135,7 +135,7 @@ EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizatio
   * What behaviors define each cluster?
   * How could this help **content curation** or **recommendation**?
 
-📦 **Output:**
+**Output:**
 `reports/cluster_profiles.md`, `reports/executive_summary.md`, and all visuals in final notebook.
 
 ---
@@ -155,7 +155,7 @@ EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizatio
   * Key visualizations or metrics.
 * Export best model(s) and pipeline(s) for reuse.
 
-📦 **Output:**
+**Output:**
 ✅ `README.md`
 ✅ Final notebooks (EDA, Features, Modeling)
 ✅ Reports folder with visuals and insights
@@ -163,7 +163,7 @@ EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizatio
 
 ---
 
-# 🧭 **Final Deliverables Overview**
+**Final Deliverables Overview**
 
 | Category       | Deliverable                | Format           |
 | -------------- | -------------------------- | ---------------- |
