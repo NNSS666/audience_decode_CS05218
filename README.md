@@ -1,4 +1,4 @@
-# **4. Clustering Analysis — Extended Structured Summary**
+# **4. Clustering Analysis**
 
 ## **4.1 Feature Engineering and Data Preparation**
 
