@@ -1,176 +1,170 @@
-# ml_25-26_audience_decode
 
-# **Audience Decode Project Breakdown**
+# 4. Clustering Analysis — Summary of All Steps Performed
 
----
-
-## **1️⃣ OBTAIN – Get and understand the data**
-
-**Goal:** connect, inspect and understand the structure of the dataset (`viewer_interactions.db`).
-
-### Tasks
-
-* Connect to the `.db` file using `sqlite3` or `duckdb`.
-* List all available tables.
-* For each table:
-
-  * Inspect columns (name, type, PK, FK, nullable).
-  * Count number of rows.
-  * Check for relationships between tables (foreign keys).
-* Build a **data dictionary** summarizing all tables and columns.
-* Merge or identify the **main table** (`interactions`, `ratings`, etc.) for analysis.
-* Save a summary table and small CSV sample for quick previews.
-
-**Output:**
-`data_dictionary.md`, `table_summary.csv`, small data sample for EDA.
+This section summarizes the entire clustering workflow, from feature engineering to model selection, validation, and behavioral interpretation.  
+The objective was to identify meaningful user segments based on engagement patterns, rating behavior, recency, and movie-preference signals.
 
 ---
 
-## **2️⃣ SCRUB – Clean and preprocess**
+## 4.1 Feature Engineering for User-Level Clustering
 
-**Goal:** prepare a clean, usable dataset for modeling.
+User-level aggregated features were generated to capture essential behavioral dimensions:
 
-### Tasks
+### **Engineered Features**
+- **scaled_total_ratings** — Standardized version of total_ratings.
+- **activity_days_new** — Duration (in days) between first and last recorded rating.
+- **days_since_last_interaction** — Recency relative to the most recent date in the dataset.
+- **ratings_per_active_day** — Rating intensity (total_ratings / activity_days_new).
+- **avg_rating_from_customer** — Mean rating value issued by the user.
+- **std_rating_from_customer** — Rating variance, measuring consistency.
+- **avg_movie_popularity** — Average movie popularity (after standardizing total_ratings_movie at the interaction level).
 
-* Handle **missing values** (drop, impute with mean/median/mode as appropriate).
-* Handle **outliers** (remove or winsorize).
-* Convert **timestamps** to datetime and extract useful features (month, year, weekday, hour).
-* Encode **categorical variables** (label, one-hot, or target encoding).
-* Normalize / scale numerical variables.
-* Create **train / validation / test splits**:
+### **Missing-Value Handling**
+Mean imputation was applied to:
+- avg_rating_from_customer  
+- std_rating_from_customer  
+- avg_movie_popularity  
 
-  * Train / validation used for model tuning.
-  * Test only used at the end (final evaluation).
+These seven features form the final clustering feature set:
 
-**Output:**
-`X_train`, `X_val`, `X_test`, `y_train`, `y_val`, `y_test` (if supervised)
-or clean feature matrix (if clustering).
-`preprocess_pipeline.py` or equivalent.
+```
 
----
+scaled_total_ratings
+activity_days_new
+days_since_last_interaction
+ratings_per_active_day
+avg_rating_from_customer
+std_rating_from_customer
+avg_movie_popularity
 
-## **3️⃣ EXPLORE – EDA and pattern discovery**
-
-**Goal:** understand audience behavior and patterns.
-
-### Tasks
-
-* Perform **Exploratory Data Analysis (EDA)**:
-
-  * View distributions (ratings, genres, time spent, etc.).
-  * Identify temporal trends (view counts per month).
-  * Find top users, top movies, most common genres.
-  * Check correlations between numerical variables.
-  * Visualize missing data and outliers.
-* Build **basic visualizations**:
-
-  * Histograms, boxplots, bar charts.
-  * Time-series trends.
-  * Heatmaps (correlation matrix).
-* Formulate hypotheses:
-
-  * Are there clusters of similar users?
-  * How does engagement change over time?
-  * Are certain genres more popular for specific user types?
-
-**Output:**
-EDA notebook (`01_EDA.ipynb`)
-EDA summary report (`eda_summary.md`) with 4–5 clear insights and visualizations.
+```
 
 ---
 
-## **4️⃣ MODEL – Build, test and compare models**
+## 4.2 Data Standardization
 
-**Goal:** model audience behavior (not only predict ratings) through segmentation and pattern discovery.
+Since the feature scales differ substantially, the entire feature matrix was standardized using:
 
-### Tasks
+**StandardScaler → X_scaled**
 
-* Define **the main goal**:
-
-  * This is a **clustering problem** (group users by viewing patterns, preferences, and engagement).
-* Select and test **at least 3 models**:
-
-  * For clustering:
-
-    * `KMeans`
-    * `Gaussian Mixture Model (GMM)`
-    * `DBSCAN` or `Agglomerative Clustering`
-  * Optionally add a **supervised model** to predict rating or engagement (e.g. `RandomForest`, `XGBoost`).
-* Perform **cross-validation or hyperparameter tuning**:
-
-  * Tune number of clusters (k).
-  * Tune model-specific hyperparameters (distance metric, epsilon, components, etc.).
-* Evaluate models using correct metrics:
-
-  * For clustering: **Silhouette score**, **Davies–Bouldin**, **Calinski–Harabasz**.
-  * For regression/classification (optional): **RMSE**, **MAE**, **AUC**, **Accuracy**.
-* Select the **best model** and justify your choice.
-
-**Output:**
-`model_comparison.csv` with metrics and parameters
-`03_Modeling.ipynb` notebook with plots (elbow, silhouette, etc.)
+This ensures that distance-based methods (KMeans, GMM) and density-based methods (HDBSCAN) properly capture meaningful behavioral differences rather than raw magnitude differences.
 
 ---
 
-## **5️⃣ iNTERPRET – Explain, visualize and report**
+## 4.3 Dimensionality Reduction with PCA
 
-**Goal:** turn models into insights that can inform business strategy.
+PCA was used for visualization and to support density-based clustering:
 
-### Tasks
-
-* **Describe the clusters** (profiling):
-
-  * Mean rating, activity level, favorite genres, engagement frequency.
-  * Label clusters with descriptive names (e.g. “Casual Watchers”, “Genre Enthusiasts”, “Binge Viewers”).
-* **Interpret model outputs**:
-
-  * Visualize clusters (e.g. PCA 2D plot or t-SNE).
-  * Show feature importance or centroid values.
-* **Fairness and interpretability check**:
-
-  * Are some user groups underrepresented?
-  * Is the segmentation stable across time or demographics?
-* Summarize findings:
-
-  * What behaviors define each cluster?
-  * How could this help **content curation** or **recommendation**?
-
-**Output:**
-`reports/cluster_profiles.md`, `reports/executive_summary.md`, and all visuals in final notebook.
+- **PCA-2** explained ~47% of the variance → useful for visual inspection.
+- **PCA-5** explained ~69% of the variance → used as input for HDBSCAN for improved performance and stability.
 
 ---
 
-## **6️⃣ COMMUNICATE – Deliverables & Documentation**
+## 4.4 KMeans Clustering (k = 2–10)
 
-**Goal:** document everything clearly for reproducibility.
+### **Metrics Evaluated**
+- **Inertia (SSE)** — Elbow curve (not very clear in this dataset).
+- **Silhouette Score** — Primary metric for model selection.
 
-### Tasks
+### **Key Results**
+- Best silhouette values:
+  - **k = 7 → ~0.222**
+  - **k = 4 → ~0.202**
+  - **k = 10 → ~0.199**
 
-* Write a **README.md** (project overview + how to run + results summary).
-* Include:
-
-  * Environment and dependencies.
-  * Folder structure.
-  * Description of chosen models and why.
-  * Key visualizations or metrics.
-* Export best model(s) and pipeline(s) for reuse.
-
-**Output:**
-✅ `README.md`
-✅ Final notebooks (EDA, Features, Modeling)
-✅ Reports folder with visuals and insights
-✅ Optional `environment.yml` or `requirements.txt`
+**k = 7** was chosen as the best KMeans solution because:
+- It provides a good balance between granularity and separation.
+- Cluster profiles are interpretable.
+- No cluster is too small or dominated by noise.
 
 ---
 
-**Final Deliverables Overview**
+## 4.5 Gaussian Mixture Models (GMM)
 
-| Category       | Deliverable                | Format           |
-| -------------- | -------------------------- | ---------------- |
-| Data audit     | Table & schema summary     | `.csv`, `.md`    |
-| Preprocessing  | Clean dataset & pipeline   | `.py`, `.pkl`    |
-| EDA            | Plots & insights           | `.ipynb`, `.md`  |
-| Modeling       | Comparison & best model    | `.ipynb`, `.csv` |
-| Interpretation | Cluster profiles & visuals | `.md`, `.png`    |
-| Documentation  | Final README & setup       | `.md`, `.yml`    |
+GMM was evaluated for 2–10 components using silhouette.
 
+### **Results**
+- Highest silhouette at **k = 2 (≈ 0.245)**.
+- However, Gaussian assumptions fail due to:
+  - heavy-tailed distributions,  
+  - extreme rating consistency (std ≈ 0),  
+  - irregular density structure,  
+  - large variance differences across features.
+
+### **Conclusion**
+Although GMM achieves a high silhouette at k=2, it produces broad, non-interpretable clusters and does not capture the true behavioral structure.  
+**GMM was discarded.**
+
+---
+
+## 4.6 HDBSCAN Clustering
+
+HDBSCAN is well suited for:
+- non-spherical clusters  
+- highly imbalanced densities  
+- natural behavioral patterns  
+- presence of noise/outliers  
+
+### **Grid Search**
+Parameters tested:
+- **min_cluster_size**: 2000, 4000, 8000  
+- **min_samples**: 10, 30, 50
+
+### **Evaluation Metrics**
+- number of clusters  
+- percentage of noise  
+- silhouette score (on non-noise points)  
+- largest/smallest cluster size  
+
+### **Best Configuration**
+- **min_cluster_size = 8000**  
+- **min_samples = 30**  
+- silhouette ≈ **0.275**  
+- noise ≈ **20.8%**  
+- clusters identified: **6**
+
+### **Interpretation**
+HDBSCAN produced:
+- highly compact and well-separated clusters  
+- meaningful behavioral profiles  
+- correct identification of ~20% noise (unclusterable users)
+
+HDBSCAN clearly outperforms KMeans and GMM in structural clarity, interpretability, and density alignment.
+
+---
+
+## 4.7 Cluster Profiling
+
+Each cluster was analyzed using:
+- feature means  
+- feature standard deviations  
+- size of each cluster  
+- rating behavior  
+- engagement levels  
+- recency  
+- movie popularity preference  
+
+### **Main Findings**
+HDBSCAN revealed natural, interpretable user types, including:
+
+- ultra-short-lived harsh reviewers  
+- niche-oriented dormant users  
+- neutral short-term users  
+- moderately active long-term positive users  
+- highly engaged, diverse long-term users  
+
+KMeans produced similar groups but with lower consistency and more mixing of behaviors.
+
+---
+
+## 4.8 Model Comparison Summary
+
+| Method | Advantages | Limitations | Outcome |
+|--------|------------|-------------|---------|
+| **KMeans** | Simple, stable, interpretable; decent silhouette | Assumes spherical clusters; forces all users into a segment | Good (k=7) |
+| **GMM** | Soft clustering, probabilistic | Assumes Gaussian shapes; fails on heavy-tailed behavioral data | Discarded |
+| **HDBSCAN** | Captures natural density structure; identifies noise; best silhouette; highly interpretable | Does not assign all users; parameter sensitivity | **Best performing model** |
+
+### **Final Recommendation**
+**HDBSCAN provides the most meaningful, stable, and behaviorally interpretable clustering solution.**  
+It identifies clear behavioral groups while correctly excluding irregular or low-information users as noise.
