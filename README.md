@@ -25,7 +25,7 @@ Because the engineered features operated on very different scales, the dataset w
 To explore the structure of the data and assist visualization, PCA was applied.
 
 * A **2-component PCA** captured ~47% of the total variance, enough to visualize broad patterns and potential cluster separations.
-* A **5-component PCA** captured ~69% of the variance, providing a more stable low-dimensional space that density-based methods like HDBSCAN could use effectively.
+* A **5-component PCA** captured ~84% of the variance, providing a more stable low-dimensional space that density-based methods like HDBSCAN could use effectively.
 
 PCA therefore played both an exploratory and a practical role in improving clustering performance.
 
@@ -36,8 +36,8 @@ KMeans was used as a baseline model due to its simplicity and interpretability. 
 While the inertia curve did not reveal a clear elbow point, the silhouette analysis provided more actionable insights. The strongest performers were:
 
 * **k = 7** (silhouette ≈ 0.222)
-* **k = 4** (silhouette ≈ 0.202)
-* **k = 10** (silhouette ≈ 0.199)
+* **k = 4** (silhouette ≈ 0.221)
+* **k = 10** (silhouette ≈ 0.218)
 
 Among these, **k = 7** offered the best compromise between behavioral detail and cluster separation. The resulting clusters were reasonably interpretable and relatively balanced in size, although some mixing of behaviors was still present due to the algorithm’s assumption of spherical and equally dense clusters.
 
