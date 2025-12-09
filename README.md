@@ -371,6 +371,8 @@ This confirms that predicting ratings is noisy. More complex models (RF, Gradien
 - **6 meaningful clusters + ~20% noise**, silhouette ≈ 0.275  
 - Clear behavioral structure: short-lived harsh reviewers, long-term positive users, niche-content consumers, etc.
 
+Cluster comparison between K-Means and HDBSCAN
+
 ![Comparison K-Means HDBSCAN](https://github.com/user-attachments/assets/a3805d5a-47a9-4a5b-8902-64fad3444818)
 
 
