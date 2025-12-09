@@ -36,6 +36,195 @@ All these observations directly influenced modelling strategy used later in the 
 
 ## Experimental Design 
 
+### Linear Regression
+
+Started with the classic: **Linear Regression**.  
+It’s simple, fast, and gives a good first impression of whether the data has any sort of linear structure. But this model cannot capture non-linear relationships or interactions between user behavior and movie behavior.
+
+The results:
+
+- Train MSE ≈ **0.84**
+- Test MSE ≈ **0.84**
+- Train R² ≈ **0.276**
+- Test R² ≈ **0.276**
+
+So we’re explaining only about **27%** of the variance. Not great, but expected since it is linear regression.
+
+#### What the coefficients tell us
+
+One nice thing about this model is the interpretability:
+
+- The strongest positive coefficient is `avg_rating_from_customer` → if a user is the type who tends to give high ratings, the model follows their habit.
+- Second, we have `avg_rating_movie` → if a movie consistently gets good reviews, this specific rating tends to be higher as well.
+- Many movie-level statistics contribute very little.
+
+So the main takeaway from the coefficients is that users tend to rate movies similarly to how they rate everything else.
+
+#### Visualizing the predictions
+
+img [Test: Actual vs Predicted Ratings]
+
+The actual vs predicted scatter looks messy because our output is discrete. The frequency comparison plot shows something more useful:
+
+img [Comparison of Actual vs Predicted Ratings]
+
+- The model **underpredicts** 1s, 2s, and 5s  
+- The model **overpredicts** 3s and 4s  
+
+In other words, the model tends to predict in the middle — it is well known that linear models behave like this with discrete data.
+
+
+### CART - Decision Tree Regression
+
+Next, we tried a **Decision Tree (CART)** to capture non-linear behavior. Trees split the data based on rules, so they naturally learn patterns like:
+
+- “Users who usually give very high ratings…”  
+- “Movies with this combination of features…”  
+- “If the movie release period is short and the user has high variance…”  
+
+I tuned the hyperparameters using GridSearchCV. Here is what some key hyperparameters mean:
+
+- **max_depth** → how deep the tree is allowed to go, the levels of it. Deeper = more complex decisions; shallow = simpler.  
+- **min_samples_split** → the minimum number of rows required before the tree is allowed to split. Prevents overly specific splits.  
+- **min_samples_leaf** → how many samples must remain in a final leaf. This forces the model to generalize instead of memorizing.
+
+Final results:
+
+- Train MSE ≈ **0.826**
+- Test MSE ≈ **0.830**
+- Train R² ≈ **0.289**
+- Test R² ≈ **0.285**
+
+So the tree slightly improves over Linear Regression.
+
+#### Confusion Matrix Interpretation
+
+Even though this is technically regression, rounding the output lets us use a confusion matrix.  
+
+img [Confusion Matrix for CART]
+
+We see that the model “gets right” mainly the 3s and 4s.  
+By “gets right” I mean that compared to the other classes, these have the highest counts on the diagonal.  
+
+BUT - earlier, the bar chart showed that the model **over-predicts** 3s and 4s in general.  
+So the confusion matrix alone would mislead us unless we interpret it together with the real distribution of ratings.
+
+
+### Random Forest (RF)
+
+Then we moved to **Random Forest**, which is an ensemble learning method where basically many decision trees work together.  
+In our case: **each tree “votes” for a rating**, and the forest takes the average.  
+
+This instantly gives the model two huge advantages:
+
+1. It captures non-linear patterns (because each tree is non-linear).  
+2. It becomes much more stable than a single tree, because the trees vote together instead of relying on just one.
+
+In the context of our project, RF is useful because the rating behavior depends on a messy combination of user history, movie stats, and interactions — and RF naturally handles these messy patterns without requiring us to manually engineer them.
+
+RF results:
+
+- Train MSE ≈ **0.776**
+- Test MSE ≈ **0.820**
+- Train R² ≈ **0.332**
+- Test R² ≈ **0.293**
+
+RF performed the best so far.
+
+
+### Gradient Boosting (HGB)
+
+Next, we ran **HistGradientBoostingRegressor**, which works differently from Random Forest.
+
+The intuitive idea:
+
+- Instead of trees voting independently like a committee,  
+- Boosting builds trees **one after another**,  
+- And *each new tree tries to fix the mistakes of the previous one*.  
+
+This creates a chain of trees, where each tree specialises in correcting residuals. This is the “boosting” idea.
+
+I tested different hyperparameters, and the best combination gave:
+
+- Train MSE ≈ **0.810**
+- Test MSE ≈ **0.817**
+- Train R² ≈ **0.303**
+- Test R² ≈ **0.296**
+
+So we get around a +0.01 improvement in R² compared to RF.
+
+But again, this tiny improvement suggests that the problem itself is not behaving like a clean regression task.
+
+
+### ANN - Artificial Neural Network
+
+Finally, I implemented an **ANN**.  
+The whole point here was to give the model even more freedom to learn complicated non-linear patterns without us needing to explicitly define them.
+
+#### Architecture
+
+I used:
+
+- First hidden layer: **128 neurons**, ReLU  
+- Second hidden layer: **64 neurons**, ReLU  
+- Output layer: **1 neuron**, which outputs the continuous rating, then changed to discrete. 
+
+The reason for 128 → 64 is to allow the network to start wide and then compress the information into a smaller representation, so as to ease the computational costs and making it extract the “essence” of the patterns (like in CNN).
+
+I converted the data into a TensorFlow Dataset because the dataset is huge, and this format is simply faster for TensorFlow to train on. It handles batching automatically.
+
+
+#### ADAM Optimizer (with the explanation from Prof. Italiano)
+
+We chose **ADAM** as the optimizer.  
+Prof. Italiano gave a very intuitive analogy in class:
+
+> Training is like walking down a mountain **blindfolded**.  
+> If you feel the ground suddenly slope down, you **run in that direction**.  
+> If it feels flat, you explore with small steps.  
+
+ADAM basically implements this idea:  
+it speeds up when it senses clear improvement and slows down when it needs precision.
+
+#### About the Learning Rate parameter
+
+In class we also saw the **TensorFlow Playground** demo.  
+It visually shows how changing the **learning rate** affects how the model descends:
+
+- Too high → it bounces around  
+- Too low → it moves extremely slowly  
+- Good learning rate → it smoothly finds the right pattern  
+
+
+#### ANN Results
+
+- Train MSE ≈ **0.81**
+- Test MSE ≈ **0.817**
+- Train R² ≈ **0.303**
+- Test R² ≈ **0.296**
+
+Basically the same results as Gradient Boosting.
+
+
+### Final Thoughts on Regression
+
+All models - Linear, CART, RF, Gradient Boost, ANN — give:
+
+- Similar MSE on train and test → no overfitting  
+- R² around **0.28 to 0.30** → they all capture the same limited portion of variance  
+- More complexity does not significantly improve performance  
+
+So the conclusion is simple but important:
+
+**The problem is not well suited for regression.**  
+The rating behaviour is too inconsistent.
+
+For that reason, from here on we moved toward the part of the assignment focused on:
+
+**“understanding how viewers interact with different genres”**
+
+which naturally takes us into **clustering** instead of prediction.
+
 ### **Clustering Analysis**
 
 #### **1 Feature Engineering and Data Preparation**
@@ -147,4 +336,3 @@ This makes HDBSCAN the recommended solution for understanding user behavior in t
 Our project showed that meaningful behavioral patterns can be identified even without predicting a specific target variable. The clustering analysis revealed clear user segments, ranging from short-lived harsh reviewers who abandoned the platform quickly (Cluster 0) to niche-focused critics (Cluster 1) and neutral users (Cluster 2). We also identified slightly longer-term light users who consistently rated poorly (Cluster 3) and uniformly positive legacy users (Cluster 4). The most valuable group consisted of long-term, recently active heavy users with diverse and informative rating behavior (Cluster 5). These findings highlight that engagement on the platform is structured and diverse, shaped by differences in activity duration, rating consistency, and content preference.
 
 While our analysis captured clear engagement patterns, several questions remain open. The dataset lacks genre information, demographic details, and detailed viewing histories beyond rating timestamps, limiting our ability to understand why certain clusters behave as they do. Without genre or sequence data, we cannot analyze preference evolution or identify movie-specific causal factors. Future work could incorporate additional metadata and refine clustering by including richer features to better explain what differentiates long-term loyal users from short-lived disengaged ones.
-
