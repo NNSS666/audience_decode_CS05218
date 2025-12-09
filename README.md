@@ -338,6 +338,58 @@ This makes HDBSCAN the recommended solution for understanding user behavior in t
 
 ## Results
 
+### Regression Analysis
+
+Across all regression models—Linear Regression, Decision Trees (CART), Random Forest, Gradient Boosting, and ANN—the performance was similar:
+
+- **R² ≈ 0.28–0.30** on train and test sets  
+- **Train/Test MSE ≈ 0.81**  
+
+This confirms that predicting ratings is noisy. More complex models (RF, Gradient Boosting, ANN) did not significantly improve performance over simpler models (Linear Regression, CART).
+
+**Key observations:**
+
+- Linear Regression captures only about 27% of variance.  
+- Decision Trees show small improvements; Random Forest slightly better.  
+- Gradient Boosting and ANN offer minimal gains.  
+- All models tend to predict middle-range ratings, underpredicting extremes (1s, 2s, 5s) and overpredicting 3s and 4s.
+
+### Clustering Analysis
+
+#### KMeans
+- Interpretable but mixed clusters.  
+- Tested k = 2–10; best compromise: **k = 7** (silhouette ≈ 0.222).  
+- Clusters reasonably balanced but assume equal density and spherical shapes.
+
+#### Gaussian Mixture Models (GMM)
+- High silhouette score for **k = 2** (≈ 0.245)  
+- Clusters lacked behavioral meaning due to Gaussian assumptions; discarded.
+
+#### HDBSCAN
+- Density-based, captures arbitrary cluster shapes, allows noise points.  
+- Best configuration: `min_cluster_size = 8000`, `min_samples = 30`.  
+- **6 meaningful clusters + ~20% noise**, silhouette ≈ 0.275  
+- Clear behavioral structure: short-lived harsh reviewers, long-term positive users, niche-content consumers, etc.
+
+| Cluster | Behavior Description                                        |
+| ------- | ----------------------------------------------------------- |
+| 0       | Short-lived, harsh reviewers who abandoned platform quickly |
+| 1       | Niche-focused critics                                       |
+| 2       | Neutral users with average activity                         |
+| 3       | Slightly longer-term, light users, consistently low ratings |
+| 4       | Uniformly positive legacy users                             |
+| 5       | Long-term, recently active heavy users with diverse ratings |
+| -1      | Noise/outliers                                              |
+
+
+### Key Takeaways
+
+- Regression models are limited by noisy ratings; R² max ~0.30  
+- KMeans finds interpretable clusters but limited by assumptions  
+- GMM produces misleading clusters despite good silhouette score  
+- HDBSCAN provides the clearest, most meaningful behavioral segmentation
+
+
 
 ## Conclusions
 Our project showed that meaningful behavioral patterns can be identified even without predicting a specific target variable. The clustering analysis revealed clear user segments, ranging from short-lived harsh reviewers who abandoned the platform quickly (Cluster 0) to niche-focused critics (Cluster 1) and neutral users (Cluster 2). We also identified slightly longer-term light users who consistently rated poorly (Cluster 3) and uniformly positive legacy users (Cluster 4). The most valuable group consisted of long-term, recently active heavy users with diverse and informative rating behavior (Cluster 5). These findings highlight that engagement on the platform is structured and diverse, shaped by differences in activity duration, rating consistency, and content preference.
