@@ -1,3 +1,9 @@
+# Audience Decode, Group 5: Unsupervised Learners
+## Team Members
+- Ieva Kadagytė
+- Lucian Kuschnir
+- Ferdinando Sasso
+
 ## Introduction
 This project investigates viewer behaviour on a movie platform using the viewer_interactions.db database. This database includes several million user–movie ratings stored across multiple relational tables. The goal of this analysis was not to predict individual ratings, but to understand broader patterns in the audience engagement.
 
