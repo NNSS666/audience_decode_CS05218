@@ -62,11 +62,12 @@ So the main takeaway from the coefficients is that users tend to rate movies sim
 
 #### Visualizing the predictions
 
-img [Test: Actual vs Predicted Ratings]
+<img width="790" height="590" alt="Test, Actual vs Predicted Ratings" src="https://github.com/user-attachments/assets/fb84cb76-a31e-4dbf-bc94-849e68701184" />
 
 The actual vs predicted scatter looks messy because our output is discrete. The frequency comparison plot shows something more useful:
 
-img [Comparison of Actual vs Predicted Ratings]
+
+<img width="989" height="590" alt="Comparison of Actual vs Predicted Ratings" src="https://github.com/user-attachments/assets/09ef7e6b-6fa5-4c5a-b51d-950b80a5f69d" />
 
 - The model **underpredicts** 1s, 2s, and 5s  
 - The model **overpredicts** 3s and 4s  
@@ -101,7 +102,7 @@ So the tree slightly improves over Linear Regression.
 
 Even though this is technically regression, rounding the output lets us use a confusion matrix.  
 
-img [Confusion Matrix for CART]
+<img width="609" height="547" alt="Confusion Matrix for CART" src="https://github.com/user-attachments/assets/28178e59-12bd-4d9b-874f-c86814b0009e" />
 
 We see that the model “gets right” mainly the 3s and 4s.  
 By “gets right” I mean that compared to the other classes, these have the highest counts on the diagonal.  
